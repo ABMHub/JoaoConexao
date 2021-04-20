@@ -49,6 +49,10 @@ class R2ABola(IR2A):
         else:
             bufferSize = pbs[-1][1]
 
+        a = 0
+        if (bufferSize == 59):
+            a = 1
+
         fator = 3
         control = 59/(numpy.log(self.qi[19] / self.qi[0]) + fator)
         maior = 0
