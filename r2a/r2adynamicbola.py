@@ -14,12 +14,14 @@ In this algorithm the quality choice is always the same.
 
 from player.parser import *
 from r2a.ir2a import IR2A
+import json
 import time
 from statistics import mean
 import numpy
-import json
+import os
 
-class R2ABola(IR2A):
+
+class R2ADynamicBola(IR2A):
 
     def __init__(self, id):
         IR2A.__init__(self, id)
@@ -49,26 +51,48 @@ class R2ABola(IR2A):
         else:
             bufferSize = pbs[-1][1]
 
-        a = 0
-        if (bufferSize == 59):
-            a = 1
+        if (bufferSize < 10):
+            print(self.throughputs)
 
         f = open('dash_client.json')
         maxBufferSize = json.load(f)['max_buffer_size']
 
+        # calculo vazao
+        while (len(self.throughputs) > 5):
+          self.throughputs.pop(0)
+
+        pesos = []
+        for i in range(len(self.throughputs)):
+          pesos.append(i+1)
+
+        avg = numpy.average(self.throughputs, weights = pesos)
+
+        qi_mean = self.qi[0]
+        for i in range(len(self.qi)):
+            if avg > self.qi[i]:
+                qi_mean = i
+
+        # calculo bola
         fator = 5
         control = maxBufferSize/(numpy.log(self.qi[19] / self.qi[0]) + fator)
         maior = 0
-        indiceMaior = 0
+        qi_bola = 0
 
         for i in range (20):
             utility = numpy.log(self.qi[i] / self.qi[0])
             maiorCandidato = (((control*utility) + (control*fator)) - bufferSize) / self.qi[i]
             if (maiorCandidato > maior):
                 maior = maiorCandidato
-                indiceMaior = i
+                qi_bola = i
 
-        msg.add_quality_id(self.qi[indiceMaior])
+        chosen_qi = 0
+        if (bufferSize > maxBufferSize * (1/3) and qi_bola < qi_mean):
+          chosen_qi = self.qi[qi_mean]
+        
+        else:
+          chosen_qi = self.qi[qi_bola]
+
+        msg.add_quality_id(chosen_qi)
         self.send_down(msg)
 
         # utility = numpy.log(self.qi[19] / self.qi[0])
@@ -95,6 +119,8 @@ class R2ABola(IR2A):
         # self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
+        t = time.perf_counter() - self.request_time
+        self.throughputs.append(msg.get_bit_length() / t)
         self.send_up(msg)
 
     def initialize(self):
