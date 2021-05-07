@@ -64,7 +64,9 @@ class R2AFDASH(IR2A):
           if (len(self.riList) < 2):
             diff = 0
           else:
-            diff = self.riList[0][2] - self.riList[int(len(self.riList)/2)][2]
+            diff = 1 / (self.riList[0][1] - self.riList[1][1])
+
+          print(diff)
             
           short = 0
           close = 0
@@ -88,16 +90,16 @@ class R2AFDASH(IR2A):
           else:
             big = 1
 
-          if (diff < -1 * T / 3):
+          if (diff < 0.85):
             fall = 1
           
-          elif (diff < 0):
-            fall = 1 - (diff + T / 3) / (T / 3)
-            steady = (diff + T / 3) / (T / 3)
+          elif (diff < 1.5):
+            fall = 1 - (diff - 0.75) / (1.5 - 0.75)
+            steady = (diff - 0.75) / (1.5 - 0.75)
           
-          elif (diff < T / 3):
-            steady = 1 - diff / (T / 3)
-            rise = diff / (T / 3)
+          elif (diff < 4):
+            steady = 1 - (diff - 1.5) / (4 - 1.5)
+            rise = (diff - 1.5) / (4 - 1.5)
 
           else:
             rise = 1
