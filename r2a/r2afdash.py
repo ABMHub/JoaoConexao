@@ -59,12 +59,12 @@ class R2AFDASH(IR2A):
           while (currentTime - self.riList[-1][1] > self.d):
             self.riList.pop(-1)
 
-          rd = mean(x[0] for x in self.riList)
+          rd = mean(x[0] for x in self.riList)/2
 
           if (len(self.riList) < 2):
             diff = 0
           else:
-            diff = 1 / (self.riList[0][1] - self.riList[1][1])
+            diff = 1 / self.riList[0][1] - self.riList[1][1]
 
           print(diff)
             
@@ -75,34 +75,41 @@ class R2AFDASH(IR2A):
           steady = 0
           rise = 0
 
-          T = self.maxBufferSize * 0.2
-          if (bufferSize < (2 * T)/3):
+          T = self.maxBufferSize * 0.4
+          if (bufferSize < T/3):
             short = 1
 
           elif (bufferSize < T):
-            short = 1 - (bufferSize - 2 * T / 3) / (T/3)
-            close = (bufferSize - 2 * T / 3) / (T/3) 
+            short = 1 - (bufferSize - T/3)/(T - (T/3))
+            close = (bufferSize - T/3)/(T - (T/3))
           
-          elif (bufferSize < 4*T):
-            close = 1 - (bufferSize - T) / (T*3)
-            big = (bufferSize - T) / (T*3)
+          elif (bufferSize < 2*T):
+            close = 1 - (bufferSize - T)/(2*T - T)
+            big = (bufferSize - T)/(2*T - T)
 
           else:
             big = 1
 
-          if (diff < 0.85):
+          if (diff < 0.5):
             fall = 1
           
-          elif (diff < 1.5):
-            fall = 1 - (diff - 0.75) / (1.5 - 0.75)
-            steady = (diff - 0.75) / (1.5 - 0.75)
+          elif (diff < 1):
+            fall = 1 - (diff - 0.5) / (1 - 0.5)
+            steady = (diff - 0.5) / (1 - 0.5)
           
-          elif (diff < 4):
-            steady = 1 - (diff - 1.5) / (4 - 1.5)
-            rise = (diff - 1.5) / (4 - 1.5)
+          elif (diff < 8):
+            steady = 1 - (diff - 1) / (8 - 1)
+            rise = (diff - 1) / (8 - 1)
 
           else:
             rise = 1
+
+          print("fall = ", fall)
+          print("steady = ", steady)
+          print("rise = ", rise)
+          print("short = ", short)
+          print("close = ", close)
+          print("big = ", big)
 
           r1 = min(short, fall)
           r2 = min(close, fall)
@@ -133,7 +140,6 @@ class R2AFDASH(IR2A):
 
         else:
           chosenQuality = self.qi[0]
-
 
         self.segmentSize = chosenQuality
         msg.add_quality_id(chosenQuality)
