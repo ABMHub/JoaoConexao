@@ -63,8 +63,10 @@ class R2AFDASH(IR2A):
 
           if (len(self.riList) < 2):
             diff = 0
+          elif (len(self.riList) < 5):
+            diff = self.riList[0][2] - self.riList[1][2]
           else:
-            diff = self.riList[0][2] - self.riList[int(len(self.riList)/2)][2]
+            diff = self.riList[0][2] - self.riList[4][2]
             
           short = 0
           close = 0
