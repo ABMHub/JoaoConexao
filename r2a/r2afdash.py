@@ -32,7 +32,7 @@ class R2AFDASH(IR2A):
         f = open('dash_client.json')
         self.stepSize = json.load(f)['playbak_step']       
         self.maxBufferSize = self.whiteboard.get_max_buffer_size()
-        self.d = 20  # tal
+        self.d = 21  # tal
 
     def handle_xml_request(self, msg):
         self.send_down(msg)
@@ -61,56 +61,56 @@ class R2AFDASH(IR2A):
 
           rd = mean(x[0] for x in self.riList)
 
-          if (len(self.riList) < 3):
-            di = 0
+          if (len(self.riList) < 2):
+            diff = 0
           else:
-            di = self.riList[1][2] - self.riList[2][2]
-
-          fall = 0
+            diff = self.riList[0][2] - self.riList[int(len(self.riList)/2)][2]
+            
           short = 0
-          steady = 0
           close = 0
+          big = 0
+          fall = 0
+          steady = 0
           rise = 0
-          fast = 0
 
-          T = self.maxBufferSize * 0.25
+          T = self.maxBufferSize * 0.2
           if (bufferSize < (2 * T)/3):
             short = 1
 
           elif (bufferSize < T):
-            short = 1 - 1/(T/3) * (bufferSize - 2 * T / 3)
-            close = 1/(T/3) * (bufferSize - 2 * T / 3)
+            short = 1 - (bufferSize - 2 * T / 3) / (T/3)
+            close = (bufferSize - 2 * T / 3) / (T/3) 
           
           elif (bufferSize < 4*T):
-            close = 1 - 1/(T*3) * (bufferSize - T)
-            fast = 1/(T*3) * (bufferSize - T)
+            close = 1 - (bufferSize - T) / (T*3)
+            big = (bufferSize - T) / (T*3)
 
           else:
-            fast = 1
+            big = 1
 
-          if (di < -2 * T / 3):
+          if (diff < -1 * T / 3):
             fall = 1
           
-          elif (di < 0):
-            fall = 1 - 1 / (2 * T / 3) * (di + 2 * T / 3)
-            steady = 1 / (2 * T / 3) * (di + 2 * T / 3)
+          elif (diff < 0):
+            fall = 1 - (diff + T / 3) / (T / 3)
+            steady = (diff + T / 3) / (T / 3)
           
-          elif (di < 4 * T):
-            steady = 1 - 1 / (4 * T) * di
-            rise = 1 / (4 * T) * di
+          elif (diff < T / 3):
+            steady = 1 - diff / (T / 3)
+            rise = diff / (T / 3)
 
           else:
             rise = 1
 
           r1 = min(short, fall)
           r2 = min(close, fall)
-          r3 = min(fast, fall)
+          r3 = min(big, fall)
           r4 = min(short, steady)
           r5 = min(close, steady)
-          r6 = min(fast, steady)
+          r6 = min(big, steady)
           r7 = min(short, rise)
           r8 = min(close, rise)
-          r9 = min(fast, rise)
+          r9 = min(big, rise)
 
           r = sqrt(pow(r1, 2))
           sr = sqrt(pow(r2, 2) + pow(r4, 2))
