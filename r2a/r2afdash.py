@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 @author: Marcos F. Caetano (mfcaetano@unb.br) 03/11/2020
 
@@ -32,7 +33,7 @@ class R2AFDASH(IR2A):
         f = open('dash_client.json')
         self.stepSize = json.load(f)['playbak_step']       
         self.maxBufferSize = self.whiteboard.get_max_buffer_size()
-        self.d = 21  # tal
+        self.d = 30  # tal
 
     def handle_xml_request(self, msg):
         self.send_down(msg)
@@ -60,28 +61,18 @@ class R2AFDASH(IR2A):
             self.riList.pop(-1)
 
           rd = mean(x[0] for x in self.riList)
-
-          if (len(self.riList) < 2):
-            diff = 0
-          else:
-            diff = 1 / self.riList[0][1] - self.riList[1][1]
-
-          print(diff)
             
           short = 0
           close = 0
           big = 0
-          fall = 0
-          steady = 0
-          rise = 0
 
-          T = self.maxBufferSize * 0.4
-          if (bufferSize < T/3):
+          T = self.maxBufferSize * 0.45
+          if (bufferSize < T/4):
             short = 1
 
           elif (bufferSize < T):
-            short = 1 - (bufferSize - T/3)/(T - (T/3))
-            close = (bufferSize - T/3)/(T - (T/3))
+            short = 1 - (bufferSize - T/4)/(T - (T/4))
+            close = (bufferSize - T/4)/(T - (T/4))
           
           elif (bufferSize < 2*T):
             close = 1 - (bufferSize - T)/(2*T - T)
@@ -90,44 +81,7 @@ class R2AFDASH(IR2A):
           else:
             big = 1
 
-          if (diff < 0.75):
-            fall = 1
-          
-          elif (diff < 1):
-            fall = 1 - (diff - 0.75) / (1 - 0.75)
-            steady = (diff - 0.75) / (1 - 0.75)
-          
-          elif (diff < 8):
-            steady = 1 - (diff - 1) / (8 - 1)
-            rise = (diff - 1) / (8 - 1)
-
-          else:
-            rise = 1
-
-          print("fall = ", fall)
-          print("steady = ", steady)
-          print("rise = ", rise)
-          print("short = ", short)
-          print("close = ", close)
-          print("big = ", big)
-
-          r1 = min(short, fall)
-          r2 = min(close, fall)
-          r3 = min(big, fall)
-          r4 = min(short, steady)
-          r5 = min(close, steady)
-          r6 = min(big, steady)
-          r7 = min(short, rise)
-          r8 = min(close, rise)
-          r9 = min(big, rise)
-
-          r = sqrt(pow(r1, 2))
-          sr = sqrt(pow(r2, 2) + pow(r4, 2))
-          nc = sqrt(pow(r3, 2) + pow(r5, 2) + pow(r7, 2))
-          si = sqrt(pow(r6, 2) + pow(r8, 2))
-          i = sqrt(pow(r9, 2))
-
-          f = ((0.25 * r) + (0.5 * sr) + nc + (1.5 * si) + (2 * i)) / (r + sr + nc + si + i)
+          f = ((0.25 * short) + (0.5 * close) + big) / (short + close + big)
 
           nxtQuality = f * rd
 
@@ -137,19 +91,6 @@ class R2AFDASH(IR2A):
               chosenQuality = q
             else:
               break
-
-          if (len(self.riList) < 2):
-            taxa = 1
-          else:
-            taxa = 1/ (self.riList[0][1] - self.riList[1][1])
-
-          if (chosenQuality > self.lastQuality):
-            if(((taxa * 10) - 10) + bufferSize < T):
-              chosenQuality = self.lastQuality
-
-          elif (chosenQuality < self.lastQuality):
-            if(((taxa * 10) - 10) + bufferSize > T):
-              chosenQuality = self.lastQuality
 
         else:
           chosenQuality = self.qi[0]
