@@ -24,6 +24,7 @@ class R2AFDASH(IR2A):
     def __init__(self, id):
         IR2A.__init__(self, id)
         self.timeToDownload = 0
+        self.lastQuality = 0
         self.segmentSize = 0
         self.riList = []
         self.qi = []
@@ -89,12 +90,12 @@ class R2AFDASH(IR2A):
           else:
             big = 1
 
-          if (diff < 0.5):
+          if (diff < 0.75):
             fall = 1
           
           elif (diff < 1):
-            fall = 1 - (diff - 0.5) / (1 - 0.5)
-            steady = (diff - 0.5) / (1 - 0.5)
+            fall = 1 - (diff - 0.75) / (1 - 0.75)
+            steady = (diff - 0.75) / (1 - 0.75)
           
           elif (diff < 8):
             steady = 1 - (diff - 1) / (8 - 1)
@@ -137,9 +138,23 @@ class R2AFDASH(IR2A):
             else:
               break
 
+          if (len(self.riList) < 2):
+            taxa = 1
+          else:
+            taxa = 1/ (self.riList[0][1] - self.riList[1][1])
+
+          if (chosenQuality > self.lastQuality):
+            if(((taxa * 10) - 10) + bufferSize < T):
+              chosenQuality = self.lastQuality
+
+          elif (chosenQuality < self.lastQuality):
+            if(((taxa * 10) - 10) + bufferSize > T):
+              chosenQuality = self.lastQuality
+
         else:
           chosenQuality = self.qi[0]
 
+        self.lastQuality = chosenQuality
         self.segmentSize = chosenQuality
         msg.add_quality_id(chosenQuality)
 
