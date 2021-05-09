@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-@author: Marcos F. Caetano (mfcaetano@unb.br) 03/11/2020
+Redes de Computadores - Turma A - 2020/2
+Grupo: João Conexão
 
-@description: PyDash Project
-
-An implementation example of a FIXED R2A Algorithm.
-
-the quality list is obtained with the parameter of handle_xml_response() method and the choice
-is made inside of handle_segment_size_request(), before sending the message down.
-
-In this algorithm the quality choice is always the same.
+Lucas de Almeida Bandeira Macedo - 190047089
+João Víctor Siqueira De Araujo - 190031026
+João Pedro Felix de Almeida - 190015292
 """
 
 from player.parser import *

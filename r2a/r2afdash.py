@@ -1,37 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-@author: Marcos F. Caetano (mfcaetano@unb.br) 03/11/2020
+Redes de Computadores - Turma A - 2020/2
+Grupo: João Conexão
 
-@description: PyDash Project
-
-An implementation example of a FIXED R2A Algorithm.
-
-the quality list is obtained with the parameter of handle_xml_response() method and the choice
-is made inside of handle_segment_size_request(), before sending the message down.
-
-In this algorithm the quality choice is always the same.
+Lucas de Almeida Bandeira Macedo - 190047089
+João Víctor Siqueira De Araujo - 190031026
+João Pedro Felix de Almeida - 190015292
 """
 
 from player.parser import *
 from r2a.ir2a import IR2A
-from math import sqrt
 import time
 from statistics import mean
 import numpy
-import json
 
 class R2AFDASH(IR2A):
 
     def __init__(self, id):
         IR2A.__init__(self, id)
         self.timeToDownload = 0
-        self.lastQuality = 0
         self.segmentSize = 0
         self.riList = []
         self.qi = []
-
-        f = open('dash_client.json')
-        self.stepSize = json.load(f)['playbak_step']       
+ 
         self.maxBufferSize = self.whiteboard.get_max_buffer_size()
         self.d = 30  # tal
 
@@ -53,8 +44,8 @@ class R2AFDASH(IR2A):
 
         if (self.segmentSize != 0):
           
-          ri = (self.segmentSize * self.stepSize) / self.timeToDownload
-          self.riList.insert(0, (ri, time.perf_counter(), bufferSize))
+          ri = self.segmentSize / self.timeToDownload
+          self.riList.insert(0, (ri, time.perf_counter()))
           
           currentTime = time.perf_counter()
           while (currentTime - self.riList[-1][1] > self.d):
@@ -95,7 +86,6 @@ class R2AFDASH(IR2A):
         else:
           chosenQuality = self.qi[0]
 
-        self.lastQuality = chosenQuality
         self.segmentSize = chosenQuality
         msg.add_quality_id(chosenQuality)
 
